@@ -1,36 +1,15 @@
 var express     = require("express"),
     bodyParser  = require("body-parser"),
-    mongoose    = require("mongoose");
+    mongoose    = require("mongoose"),
+    Campground  = require("./models/campground"),
+    seedDB      = require("./seeds");
 
 var app = express();
 
 mongoose.connect("mongodb://localhost/yelp_camp", { useNewUrlParser: true });
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
-
-// SCHEMA SETUP
-var campgroundSchema = new mongoose.Schema({
-   name: String,
-   image: String,
-   description: String
-});
-
-// Compile the model
-var Campground = mongoose.model("Campground", campgroundSchema);
-
-// Campground.create(
-//                     {name: "Granite Hill",
-//                     image: "https://images.unsplash.com/photo-1536646506670-821b8a6bbbca?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=0f9d92ffc7bab36aee409d633606b6fa&auto=format&fit=crop&w=1950&q=80",
-//                     description: "This is a huge granite hill, no bathrooms.  No water.  Beautiful granite!"
-                        
-//                     }, function(err, campground){
-//                     if(err){
-//                         console.log(err);
-//                     } else {
-//                         console.log("NEWLY CREATED CAMPGROUND");
-//                         console.log(campground);
-//                     }
-//                  });
+seedDB();
 
 
 //ROUTES
@@ -76,10 +55,11 @@ app.get("/campgrounds/new", function(req, res){
 //SHOW - shows more info about one campground
 app.get("/campgrounds/:id", function(req, res) {
     //find the campground with provide ID
-    Campground.findById(req.params.id, function(err, foundCampground){
+    Campground.findById(req.params.id).populate("comments").exec(function(err, foundCampground){
        if(err){
            console.log(err);
        } else {
+           console.log(foundCampground);
            //render show template with that campground
            res.render("show", {campground: foundCampground});
        }
